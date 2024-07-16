@@ -1,0 +1,16 @@
+{
+  "scripts": {
+    "start": "nodemon index.ts"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.30.0",
+    "@slack/bolt": "^3.18.0",
+    "@solana/web3.js": "^1.93.0"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.5",
+    "nodemon": "^3.1.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
