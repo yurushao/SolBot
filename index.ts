@@ -22,9 +22,37 @@ const app = new App({
   port: 3000,
 });
 
+app.command("/solana", async ({ payload, ack, say }) => {
+  console.log("payload", payload);
+  await ack();
+
+  const [subcommand, address] = payload.text.split(" ");
+  if (!["balance", "program"].includes(subcommand)) {
+    await say(`Unrecognized subcommand: ${subcommand}`);
+  }
+
+  switch (subcommand) {
+    case "balance": {
+      const accountInfo = await connection.getAccountInfo(
+        new PublicKey(address)
+      );
+
+      await say(`\`${address}\` balance: ${accountInfo!.lamports / 1e9} SOL`);
+      return;
+    }
+    case "program": {
+      return;
+    }
+  }
+
+  await say(`ack: ${payload.text}`);
+});
+
 // Listens to incoming messages that contain "hello"
 app.message("", async ({ message, say }) => {
   // say() sends a message to the channel where the event was triggered
+
+  console.log("message", message);
 
   const account = new PublicKey("gLJHKPrZLGBiBZ33hFgZh6YnsEhTVxuRT17UCqNp6ff");
   const balance = await connection.getBalance(account);
