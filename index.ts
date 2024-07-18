@@ -1,16 +1,11 @@
-import { App } from "@slack/bolt";
-import * as anchor from "@coral-xyz/anchor";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { App, SlackCommandMiddlewareArgs } from "@slack/bolt";
+import { balance_handler, subscribe_handler } from "./handlers";
 
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config({ path: ".env.local", override: true });
 }
 
-const connection = new Connection(
-  process.env.SOLANA_RPC || "https://api.mainnet-beta.solana.com"
-);
-const provider = new anchor.AnchorProvider(connection, {} as anchor.Wallet);
-anchor.setProvider(provider);
+const SUB_COMMANDS = ["balance", "subscribe"];
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
@@ -22,43 +17,39 @@ const app = new App({
   port: 3000,
 });
 
-app.command("/solana", async ({ payload, ack, say }) => {
-  console.log("payload", payload);
-  await ack();
+app.command(
+  "/solana",
+  async ({ payload, ack, say }: SlackCommandMiddlewareArgs) => {
+    console.log("payload", payload);
+    await ack();
 
-  const [subcommand, address] = payload.text.split(" ");
-  if (!["balance", "program"].includes(subcommand)) {
-    await say(`Unrecognized subcommand: ${subcommand}`);
-  }
-
-  switch (subcommand) {
-    case "balance": {
-      const accountInfo = await connection.getAccountInfo(
-        new PublicKey(address)
-      );
-
-      await say(`\`${address}\` balance: ${accountInfo!.lamports / 1e9} SOL`);
-      return;
+    const [subcommand, address] = payload.text.split(" ");
+    if (!SUB_COMMANDS.includes(subcommand)) {
+      await say(`Unrecognized subcommand: ${subcommand}`);
     }
-    case "program": {
-      return;
-    }
-  }
 
-  await say(`ack: ${payload.text}`);
-});
+    switch (subcommand) {
+      case "balance": {
+        return await balance_handler(address, say);
+      }
+      case "subscribe": {
+        return await subscribe_handler(address, say);
+      }
+    }
+
+    await say(`ack: ${payload.text}`);
+  }
+);
 
 // Listens to incoming messages that contain "hello"
-app.message("", async ({ message, say }) => {
-  // say() sends a message to the channel where the event was triggered
+// app.message("hello", async ({ message, say }) => {
+//   console.log("message", message);
 
-  console.log("message", message);
+//   const account = new PublicKey("gLJHKPrZLGBiBZ33hFgZh6YnsEhTVxuRT17UCqNp6ff");
+//   const balance = await connection.getBalance(account);
 
-  const account = new PublicKey("gLJHKPrZLGBiBZ33hFgZh6YnsEhTVxuRT17UCqNp6ff");
-  const balance = await connection.getBalance(account);
-
-  await say(`${account.toBase58()} balance: ${balance / 1e9} SOL`);
-});
+//   await say(`${account.toBase58()} balance: ${balance / 1e9} SOL`);
+// });
 
 (async () => {
   // Start your app
