@@ -43,3 +43,7 @@ export async function subscribe_handler(address: string, say: _SayFn) {
 
   await say(`Subscribed to \`${address}\``);
 }
+
+export async function list_handler(say: _SayFn) {
+  // List all addresses being watched
+}

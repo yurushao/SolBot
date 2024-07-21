@@ -5,7 +5,7 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config({ path: ".env.local", override: true });
 }
 
-const SUB_COMMANDS = ["balance", "subscribe"];
+const SUB_COMMANDS = ["balance", "subscribe", "list"];
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
@@ -34,6 +34,9 @@ app.command(
       }
       case "subscribe": {
         return await subscribe_handler(address, say);
+      }
+      case "list": {
+        return await list_handler(say);
       }
     }
 
